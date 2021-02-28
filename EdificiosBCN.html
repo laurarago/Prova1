@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Ganador 10-N</title>
+</head>
+<style>
+     @import url('https://fonts.googleapis.com/css?family=Open+Sans:200,400,600,700,800');
+    *{margin: 0; padding: 0;}
+    body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Helvetica Neue', Helvetica, Arial, Sans-serif;
+}
+
+#map {
+  position: absolute;
+  bottom: 0;
+  top: 0;
+  width: 100%;
+  z-index: -1;
+}
+
+h1 {
+  font-size: 1.5em;
+  line-height: 30px;
+  text-align: center;
+  padding-top: 10px;
+
+}
+
+h2 {
+  font-size: 1em;
+  margin-bottom: 5px;
+  font-weight: 200px;
+}
+
+#header p {
+    text-align: center;
+    font-size: 1em;
+    color: gray;
+}
+
+a {
+  text-decoration: none;
+  color: #2dc4b2;
+}
+
+#header {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  background-color: white; 
+  padding-bottom: 10px;
+}
+
+#console {
+  position: absolute;
+  width: 150px;
+  margin: 20px;
+  padding:  10px;
+  top: 140px;
+  background-color: white; 
+  opacity: 0.95;
+}
+
+.session {
+  margin-bottom: 20px;
+}
+
+.row {
+  height: 18px;
+  width: 100%;
+}
+
+.geocoder {
+position: relative;
+width: 25% !important;
+left: 50% !important;
+margin-left: -10% !important;
+top: 10px !important;
+padding-bottom: 10px;
+
+}
+.mapboxgl-ctrl-geocoder {
+min-width: 100%;
+
+
+}
+
+
+</style>
+
+<script src='https://api.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.js'></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.css" type="text/css">
+<!-- Promise polyfill script required to use Mapbox GL Geocoder in IE 11 -->
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.css' rel='stylesheet' />
+<script src='https://api.tiles.mapbox.com/mapbox.js/v1.6.3/mapbox.js'></script>
+<link href='https://api.tiles.mapbox.com/mapbox.js/v1.6.3/mapbox.css' rel='stylesheet' />
+<script src='https://cdn.rawgit.com/duroty/responsive/master/app.embed.js'></script>
+<body>
+    <div id='header'><h1>Quin alcalde ha fet créixer més Barcelona?</h1>
+    <p><b style="color: #accfe8;">●</b> Anterior a 1939&nbsp;&nbsp;<b style="color: #01628f;">●</b>
+         Franquisme (1939-1979) &nbsp;&nbsp;<b style="color: #de2c44;">●</b> PSC (1979-2011)&nbsp;&nbsp;<b style="color: #fcba03;">●</b> CiU (2011-2015)&nbsp;&nbsp;<b style="color: #97134b;">●</b> Comuns (desde 2015)&nbsp;&nbsp;<br></p>
+    <div id='geocoder' class='geocoder'></div>
+
+        </div>
+
+    <div id='map'></div>
+    <div id='console'>
+        <div class='session'>
+        <div id='filters'>
+        <h2 style="color: grey;">Filtra per alcalde:</h2>
+        <div class='row'>
+          <input id='all' type='radio' name='toggle' value='all' checked='checked'>
+          <label for='all'>Tots</label>
+        </div>
+        <div class='row'>
+          <input id='Colau' type='radio' name='toggle' value='Colau'>
+          <label for='Colau'>Ada Colau</label>
+        </div>
+        <div class='row'>
+          <input id='Trias' type='radio' name='toggle' value='Trias'>
+          <label for='Trias'>Xavier Trias</label>
+        </div>
+        <div class='row'>
+          <input id='Hereu' type='radio' name='toggle' value='Hereu'>
+          <label for='Hereu'>Jordi Hereu</label>
+        </div>
+        <div class='row'>
+          <input id='Maragall' type='radio' name='toggle' value='Maragall'>
+          <label for='Maragall'>Pascual Maragall</label>
+        </div>
+        <div class='row'>
+          <input id='Serra' type='radio' name='toggle' value='Serra'>
+          <label for='Serra'>Narcís Serra</label>
+        </div>
+        <div class='row'>
+          <input id='Franquista' type='radio' name='toggle' value='Franquista'>
+          <label for='Franquista'>Franquista</label>
+        </div>
+        <div class='row'>
+          <input id='Anterior' type='radio' name='toggle' value='Anterior'>
+          <label for='Anterior'>Anterior</label>
+        </div>
+          
+      </div>
+    </div>
+    
+</nav></div></div>
+
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoibGF1cjA1IiwiYSI6ImNpbmtmM2FjazAwODF2eG0yNjhteTcxdHIifQ.l7uzjVe2b1L8dHh_Z9JjoQ';
+var map = new mapboxgl.Map({
+container: 'map', // container id
+
+
+style: 'mapbox://styles/laur05/cjv6iiluq01vl1fqn5yu67bd5', 
+
+center:  [2.16, 41.395],   // starting position [lng, lat]
+zoom: 13,// starting zoom
+minZoom: 1,
+maxZoom: 22,
+attributionControl: false,
+
+});
+var hoveredStateId =  null;
+var searched_lngLat = null;
+const to_ES = (number, digits=0) => number.toLocaleString("es", {
+          minimumFractionDigits: digits, 
+          maximumFractionDigits: digits} )
+
+map.on('load', function () {
+// Add a layer showing the state polygons.
+map.addSource("resultados", {
+    type: 'vector',
+    url: 'mapbox://laur05.7i7c4dzy',
+});
+var layers = map.getStyle().layers;
+// Find the index of the first symbol layer in the map style
+map.addLayer({
+'id': 'tiles-fills',
+'type': 'fill',
+'renderingMode': '2d',
+'source': 'resultados',
+'source-layer': 'Alcaldes',
+'paint': {
+'fill-color': ["match", ["get","alcalde"],
+  "Ada Colau", "#97134b",
+  "Xavier Trias", "#fcba03",
+  "Jordi Hereu", "#de2c44",
+  "Joan Clos", "#de2c44",
+  "Pascual Maragall", "#de2c44",
+  "Narcís Serra", "#de2c44",
+  "Franquista", "#01628f",
+  "#accfe8"],
+'fill-opacity': 1
+}}, "road-major-link-case");
+
+
+
+document.getElementById('filters').addEventListener('change', function(e) {
+  var alcalde = e.target.value;
+  // update the map filter
+  if (alcalde === 'all') {
+    filterDay = ['!=', ['string', ['get', 'alcalde']], 'placeholder'];
+  } else if (alcalde === 'Colau') {
+    filterDay = ['match', ['get', 'alcalde'], ['Ada Colau'], true, false];
+  } else if (alcalde === 'Trias') {
+    filterDay = ['match', ['get', 'alcalde'], ['Xavier Trias'], true, false];
+  } else if (alcalde === 'Hereu') {
+    filterDay = ['match', ['get', 'alcalde'], ['Jordi Hereu'], true, false];
+  } else if (alcalde === 'Maragall') {
+    filterDay = ['match', ['get', 'alcalde'], ['Pascual Maragall'], true, false];
+  } else if (alcalde === 'Serra') {
+    filterDay = ['match', ['get', 'alcalde'], ['Narcís Serra'], true, false];
+  } else if (alcalde === 'Franquista') {
+    filterDay = ['match', ['get', 'alcalde'], ['Franquista'], true, false];
+} else if (alcalde === 'Anterior') {
+    filterDay = ['match', ['get', 'alcalde'], ['Anterior a la guerra'], true, false];
+  } else {
+    console.log('error');
+  }
+  map.setFilter('tiles-fills', ['all', filterDay]);
+});
+
+map.addLayer({
+'id': 'tiles-borders',
+'type': 'line',
+'renderingMode': '2d',
+'source': 'resultados',
+'source-layer': 'Alcaldes',
+'paint': {
+    "line-color": ["case", ["boolean", ["feature-state", "hover"], false], "black", "white"],
+     "line-width": ["case", ["boolean", ["feature-state", "hover"], false], 2, 0.001]}
+    });
+// Add zoom and rotation controls to the map.
+var nav = new mapboxgl.NavigationControl( {showCompass:false});
+map.addControl(nav, 'bottom-right');
+// disable map zoom when using scroll
+map.scrollZoom.disable();
+var geocoder = new MapboxGeocoder({
+countries: 'es',
+accessToken: mapboxgl.accessToken,
+mapboxgl: mapboxgl,
+types: 'region, place, locality, neighborhood, address',
+placeholder: 'Busca el teu carrer',
+zoom: 15,
+});
+document.getElementById('geocoder').appendChild(geocoder.onAdd(map));
+var popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false,
+}); 
+   map.on('mousemove', 'tiles-fills', function(e) {
+    if (e.features.length > 0) {
+          if (hoveredStateId) {          
+            map.setFeatureState({ source: 'resultados', 
+                                  sourceLayer: 'Alcaldes',
+                                  id: hoveredStateId}, { hover: false});
+          }
+          hoveredStateId = e.features[0].id;
+          map.setFeatureState({ source: 'resultados', 
+                              sourceLayer: 'Alcaldes',
+                              id: hoveredStateId}, { hover: true});
+
+        }
+       map.getCanvas().style.cursor = 'pointer';
+ 
+                 
+                
+                
+        var coordinates = e.features[0].geometry.coordinates.slice();
+        var alcalde = e.features[0].properties.alcalde;
+        var any = e.features[0].properties.year;
+        var usos = e.features[0].properties.usos;
+        var partit = e.features[0].properties.partit;
+
+
+
+        
+         popup.setLngLat(e.lngLat)
+            .setHTML("<div style='color:black;font-size:16px;text-align:center;font-family: OpenSans-bold, Open Sans;padding-bottom:3px'><b>" + any + "</b></div><hr><div style='padding-top: 4px; font-size: 14px;font-family: Open Sans;text-align: center;'>Alcalde: <b>" + alcalde + "</b></div><div style='padding-top: 4px; font-size: 14px;font-family: Open Sans;text-align: center;'>Ús: <b>" + usos + "</div>")
+            .addTo(map);
+  });   
+        // Change the cursor style as a UI indicator.
+        
+        // Display a popup with the name of the county
+  map.on('mouseleave', 'tiles-fills', function() {
+      map.getCanvas().style.cursor = '';
+        popup.remove();
+        if (hoveredStateId) {          
+          map.setFeatureState({ source: 'resultados', 
+                                sourceLayer: 'Alcaldes',
+                                id: hoveredStateId}, { hover: false});
+        }
+        hoveredStateId = null;
+      });
+});  
+
+
+</script>
+ 
+
+   
+	</body>
+</html>
